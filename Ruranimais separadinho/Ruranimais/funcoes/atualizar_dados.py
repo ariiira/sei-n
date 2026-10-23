@@ -1,0 +1,143 @@
+from verificar_dados import *
+
+
+# Cria nova senha
+def recuperar_senha(dados_usuario):
+    cpf_digitado = input("Digite seu CPF para confirmar sua identidade: ").strip()
+    if limpar_cpf(cpf_digitado) != limpar_cpf(dados_usuario[4]):
+        rprint(f"\n❌[{vermelho}]CPF incorreto[/{vermelho}]\nVoltando para o menu...")
+        time.sleep(2)
+        return None
+
+    if not verificar_codigo_email(dados_usuario[2], enviar_email_senha, "Recuperação de senha"):
+        return None
+
+    while True:
+        rprint (f"\nSenha precisa conter:\n- Pelo menos 8 caracteres\n- Uma letra maiúscula\n- Uma letra minúscula\n- Um número\n- Um caractere especial")
+        nova_senha = input("Digite sua nova senha: ").strip()
+        senha_valida, mensagem = verificar_senha(nova_senha)
+        if not senha_valida:
+            rprint(f"\n❌[{vermelho}]{mensagem}[/{vermelho}]")
+            continue
+
+        confirmacao = input("Confirme sua nova senha: ").strip()
+        if confirmacao != nova_senha:
+            rprint(f"\n❌[{vermelho}]As senhas não coincidem[/{vermelho}]")
+            continue
+        break
+
+    # Vai atrás da senha no banco de dados pra atualizar
+    cursor.execute(
+        "UPDATE usuarios_ruranimais SET senha = ? WHERE id = ?",
+        (nova_senha, dados_usuario[0]),
+    )
+    conexao.commit()
+    rprint(f"\n[{verde}]Senha redefinida com sucesso![/{verde}]")
+    cursor.execute(
+        "SELECT * FROM usuarios_ruranimais WHERE id = ?",
+        (dados_usuario[0],),
+    )
+    return cursor.fetchone()
+
+
+# Deletar conta
+def deletar_usuario(email, nome_usuario, cpf, senha):
+    while True:
+        rprint(f"\n[{vermelho}]Deseja deletar sua conta?[/{vermelho}]")
+        deseja_deletar = input(
+            f"OBS.: Essa ação não pode ser desfeita!\n(s/n): "
+        ).strip().lower()
+        if deseja_deletar == "s":
+            break
+        if deseja_deletar == "n":
+            rprint(f"[{verde}]Ebaaa, sua conta continua intacta![/{verde}]")
+            return False
+        rprint(f"[{vermelho}]Opção inválida. Digite s ou n.[/{vermelho}]")
+
+    # Pede informações usadas no login pra confirmar que usuário quer deletar conta
+    email_digitado = input("Informe seu email para confirmar: ").strip()
+    senha_digitada = input("Informe sua senha para confirmar: ").strip()
+    if email_digitado != email or senha_digitada != senha:
+        rprint(f"\n❌[{vermelho}]Email e/ou senha incorretos[/{vermelho}]\n\nNão foi possível deletar conta.")
+        time.sleep(1)
+        return None
+ # Vai atrás de deletar as informações do usuário
+    cursor.execute(
+        """SELECT id FROM usuarios_ruranimais
+           WHERE email = ? AND nome_usuario = ? AND cpf = ? AND senha = ?""",
+        (email, nome_usuario, cpf, senha),
+    )
+    usuario = cursor.fetchone()
+    if usuario is None:
+        rprint(f"\n❌[{vermelho}]Não foi possível encontrar a conta[/{vermelho}]")
+        return None
+
+    cursor.execute(
+        "DELETE FROM usuarios_ruranimais WHERE id = ?",
+        (usuario[0],),
+    )
+    conexao.commit()
+    rprint("\nConta deletada com sucesso...\nFoi um prazer ter você conosco!")
+    time.sleep (2)
+    return True
+
+
+#atualizar senha
+def atualizar_senha(dados_usuario):
+    while True:
+        rprint("\nSenha precisa conter:\n- Pelo menos 8 caracteres\n- Uma letra maiúscula\n- Uma letra minúscula\n- Um número\n- Um caractere especial")
+        nova_senha = input("Digite sua nova senha: ").strip()
+        senha_valida, mensagem = verificar_senha(nova_senha)
+        if not senha_valida:
+            rprint(f"\n❌[{vermelho}]{mensagem}[/{vermelho}]")
+            continue
+
+        confirmacao = input("Confirme sua nova senha: ").strip()
+        if confirmacao != nova_senha:
+            rprint(f"\n❌[{vermelho}]As senhas não coincidem[/{vermelho}]")
+            continue
+        break
+
+    # Vai atrás da senha no banco de dados pra atualizar
+    cursor.execute(
+        "UPDATE usuarios_ruranimais SET senha = ? WHERE id = ?",
+        (nova_senha, dados_usuario[0]),
+    )
+    conexao.commit()
+    cursor.execute(
+        "SELECT * FROM usuarios_ruranimais WHERE id = ?",
+        (dados_usuario[0],),
+    )
+    dados_atualizados = cursor.fetchone()
+    if dados_atualizados is None:
+        raise LookupError(f"[{vermelho}]Usuário não encontrado :( atualização da senha falha[/{vermelho}]")
+    return dados_atualizados
+
+
+#atualizar nome
+def atualizar_nome_usuario(dados_usuario):
+    while True:
+        novo_nome_usuario = input("Nome de usuário:").strip()
+        if novo_nome_usuario == dados_usuario[1]:
+            rprint(f"\n[{amarelo}]Nome de usuário permanece o mesmo[/{amarelo}]")
+            return dados_usuario
+        nome_valido, mensagem_nome = verificar_nome(novo_nome_usuario)
+        if not nome_valido:
+            rprint(f"\n❌[{vermelho}]{mensagem_nome}[/{vermelho}]")
+            continue
+        break
+
+    # Vai atrás de nome_usuario no banco de dados pra atualizar
+    cursor.execute(
+        "UPDATE usuarios_ruranimais SET nome_usuario = ? WHERE id = ?",
+        (novo_nome_usuario, dados_usuario[0]),
+        )
+    conexao.commit()
+    cursor.execute(
+        "SELECT * FROM usuarios_ruranimais WHERE id = ?",
+        (dados_usuario[0],),
+        )
+    dados_atualizados = cursor.fetchone()
+    if dados_atualizados is None:
+        raise LookupError(f"[{vermelho}]Usuário não encontrado :( atualização de nome de usuário falha[/{vermelho}]")
+    return dados_atualizados
