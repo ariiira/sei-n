@@ -26,7 +26,7 @@ def mostrar_logo(caminho_logo=None):
     )
     with arquivo_logo.open("r", encoding="utf-8") as f:
         logo= f.read()
-    print(logo)
+    rprint(logo)
     time.sleep(4)
     limpar_terminal()
 

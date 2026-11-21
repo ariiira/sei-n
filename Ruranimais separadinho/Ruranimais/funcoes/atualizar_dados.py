@@ -1,4 +1,4 @@
-from verificar_dados import *
+from funcoes.verificar_dados import *
 
 
 # Cria nova senha

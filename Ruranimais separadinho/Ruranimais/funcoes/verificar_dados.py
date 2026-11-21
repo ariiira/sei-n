@@ -1,5 +1,5 @@
-from util import *
-from enviar_email import *
+from funcoes.util import *
+from funcoes.enviar_email import *
 
 # Pra não poder usar dados que já foram cadastrados
 def _campo_duplicado(nome_usuario=None, email=None, cpf=None):

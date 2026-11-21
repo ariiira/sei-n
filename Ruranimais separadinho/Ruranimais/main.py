@@ -1,5 +1,8 @@
 # Imports
-from usuario.usuario import *
+from usuario.atualizar import *
+from usuario.cadastro import *
+from usuario.login import *
+from funcoes.util import *
 
 # Musiquinha eba !!
 from playsound3 import playsound
